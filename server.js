@@ -95,8 +95,8 @@ function tester() {
                 for (let i = 0; i <= filteredArray.length - 1; i++) {
                     if (i !== 0) {
                         // if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
-                        console.log('-------------------------------------')
-                        console.log(filteredArray[555])
+                        // console.log('-------------------------------------')
+                        // console.log(filteredArray[555])
                         // console.log(filteredArray[i - 1])
                         // }
                     }
