@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 var moment = require('moment');
 
 const cors = require('cors');
-require('dotenv').config();
+// require('dotenv').config();
 
 const {
     Logs
