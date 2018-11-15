@@ -30,12 +30,6 @@ app.get('/init', function (req, res) {
     res.send('initiated')
 });
 
-app.get('/hello', function (req, res) {
-    console.log('test working')
-    res.send('hello')
-});
-
-
 let server;
 // connects mongoose and starts server
 function runServer(databaseUrl = DATABASE_URL, port = PORT) {
@@ -59,21 +53,19 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
     });
 }
 
-function closeServer() {
-    return mongoose.disconnect().then(() => {
-        return new Promise((resolve, reject) => {
-            console.log('Closing server');
-            server.close(err => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve();
-            });
-        });
-    });
-}
-
-
+// function closeServer() {
+//     return mongoose.disconnect().then(() => {
+//         return new Promise((resolve, reject) => {
+//             console.log('Closing server');
+//             server.close(err => {
+//                 if (err) {
+//                     return reject(err);
+//                 }
+//                 resolve();
+//             });
+//         });
+//     });
+// }
 
 runServer().catch(err => console.error(err));
 
@@ -102,11 +94,11 @@ function tester() {
 
                 for (let i = 0; i <= filteredArray.length - 1; i++) {
                     if (i !== 0) {
-                        if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
-                            console.log('-------------------------------------')
-                            console.log(filteredArray[i])
-                            console.log(filteredArray[i - 1])
-                        }
+                        // if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
+                        console.log('-------------------------------------')
+                        console.log(filteredArray[555])
+                        // console.log(filteredArray[i - 1])
+                        // }
                     }
                 }
             })
