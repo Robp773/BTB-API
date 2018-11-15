@@ -20,14 +20,14 @@ app.use(cors());
 
 mongoose.promise = global.promise;
 
-app.post('/test', function (req, res) {
-    console.log('post')
+app.get('/init', function (req, res) {
+    console.log('initiating db')
     Logs.create({
         lastLog: 0,
         logs: []
     })
 
-    res.send('win')
+    res.send('initiated')
 });
 
 app.get('/hello', function (req, res) {
