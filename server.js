@@ -15,6 +15,9 @@ const {
     DATABASE_URL,
     PORT
 } = require('./config');
+
+app.use(cors());
+
 mongoose.promise = global.promise;
 
 app.post('/test', function (req, res) {
