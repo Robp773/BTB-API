@@ -27,6 +27,11 @@ app.post('/test', function (req, res) {
     res.send('win')
 });
 
+app.get('/hello', function (req, res) {
+    console.log('test working')
+    res.send('hello')
+});
+
 
 let server;
 // connects mongoose and starts server
