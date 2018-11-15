@@ -2,11 +2,11 @@ var express = require('express');
 var app = express();
 const axios = require('axios');
 const mongoose = require('mongoose');
-var moment = require('moment');
-const cors = require('cors');
-require('dotenv').config();
 
-app.use(cors());
+var moment = require('moment');
+
+const cors = require('cors');
+// require('dotenv').config();
 
 const {
     Logs
