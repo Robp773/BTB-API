@@ -4,7 +4,6 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 var moment = require('moment');
 const cors = require('cors');
-// require('dotenv').config();
 const {
     Logs
 } = require('./models');
@@ -15,21 +14,13 @@ const {
 app.use(cors());
 mongoose.promise = global.promise;
 
-
-// app.get('/init', function (req, res) {
-//     console.log('initiating db')
-//     Logs.create({
-//         lastLog: 0,
-//         logs: []
-//     })
-//     res.send('initiated')
-// });
-
+// returns data in chartJS format
 app.get('/totals', function (req, res) {
 
     let dataObj = {}
     let userObj = {}
 
+    // query database
     Logs.findOne({})
         .then((result) => {
 
@@ -66,10 +57,10 @@ app.get('/totals', function (req, res) {
 
             // sort for largest number of success/fail
             let successArray = userTotals.sort((a, b) => (a.success > b.success) ? 1 : ((b.success > a.success) ? -1 : 0));
-            dataObj.success = successArray.slice(-7, userTotals.length)
+            dataObj.success = successArray.slice(-10, userTotals.length)
 
             let failArray = userTotals.sort((a, b) => (a.fail > b.fail) ? 1 : ((b.fail > a.fail) ? -1 : 0));
-            dataObj.fail = failArray.slice(-7, userTotals.length)
+            dataObj.fail = failArray.slice(-10, userTotals.length)
 
             let barData = {
                 success: {
@@ -81,7 +72,7 @@ app.get('/totals', function (req, res) {
                     data: []
                 }
             }
-
+            // format into arrays of labels and matching values for chartJS
             for (let i = 0; i < dataObj.success.length; i++) {
                 barData.success.labels.push(dataObj.success[i].name)
                 barData.success.data.push(dataObj.success[i].success)
@@ -91,8 +82,6 @@ app.get('/totals', function (req, res) {
                 barData.fail.labels.push(dataObj.fail[i].name)
                 barData.fail.data.push(dataObj.fail[i].fail)
             }
-
-            console.log(barData)
             res.send(barData)
         })
 });
@@ -117,8 +106,9 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
         });
     });
 }
-function getAuth() {
 
+// get auth token
+function getAuth() {
     return axios.get('https://duoauth.me/auth')
         .then(response => {
             return response
@@ -128,29 +118,37 @@ function getAuth() {
         });
 }
 
-let oldLogCap;
-let newLogCap;
-
 function updateDB() {
-    let filteredArray;
+    let oldLogCap, newLogCap, filteredArray;
+
     // get auth token
     return getAuth().then((res) => {
-        // find the current db document and set variables so values can be updated later
+        // find the current db document
         Logs.findOne({})
             .then((log) => {
+                // find number of last log that was stored in database
+                // used in the "from" param later
                 oldLogCap = log.logs.length === 1 ? 0 : log.logs.length
-                filteredArray = log.logs
-                // console.log(filteredArray[9490])
 
-                for (let i = 0; i <= filteredArray.length - 1; i++) {
-                    if (i !== 0) {
-                        // if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
-                        // console.log('-------------------------------------')
-                        // console.log(filteredArray[555])
-                        // console.log(filteredArray[i - 1])
-                        // }
-                    }
-                }
+                // array of normalized data, new logs will be pushed into this
+                filteredArray = log.logs
+
+        // ---------------------------------------------------------------------------------
+
+                // used for finding duplicate id's - not being used since I've decided
+                // its better to leave duplicate ids and count them in data rather than
+                // change them to unique ids and 
+                
+                // for (let i = 0; i <= filteredArray.length - 1; i++) {
+                //     if (i !== 0) {
+                // if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
+          
+                //          }
+                //     }
+                // }
+
+        // ---------------------------------------------------------------------------------
+
             })
 
             // send auth token in header and set "from" param to lastLog value in db
@@ -160,24 +158,24 @@ function updateDB() {
                         "Authorization": res.data
                     },
                     params: {
+                        // +1 because last log id is not an array index number
                         from: oldLogCap + 1
                     }
                 }
 
                 console.log(`requesting data from ${oldLogCap} and up`)
-                // get req with params
 
+                // get new data with params
                 axios.get('https://duoauth.me/get-events', config)
                     .then(response => {
 
-                        // set variable for new number of logs
+                        // set log cap to include any new logs retrieved
                         newLogCap = oldLogCap + response.data.length
 
                         // if there are new results
                         if (response.data) {
-                            // console.log(response.data)
+                            // normalizing data
                             for (let i = 0; i < response.data.length; i++) {
-
                                 let newObj = {}
                                 newObj.AcmeApiId = response.data[i].id
                                 newObj.UserName = response.data[i].user_Name.toLowerCase().substring(response.data[i].user_Name.indexOf(":") + 1).trim();
@@ -203,20 +201,21 @@ function updateDB() {
                         })
                     })
                     .catch(error => {
-                        console.log('error');
+                        console.log(error);
                     });
             })
     })
 }
 
-
 function runDB() {
-   return runServer().catch(err => console.error(err))
-   .then(()=>{
-         updateDB()    
-          // setInterval(updateDB, 60000)
-
-   });
+    // start the server
+    return runServer().catch(err => console.error(err))
+        .then(() => {
+            // check for new logs
+            updateDB()
+            // check again every minute
+            setInterval(updateDB, 60000)
+        });
 }
 
 runDB()
