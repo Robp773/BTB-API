@@ -57,10 +57,10 @@ app.get('/totals', function (req, res) {
 
             // sort for largest number of success/fail
             let successArray = userTotals.sort((a, b) => (a.success > b.success) ? 1 : ((b.success > a.success) ? -1 : 0));
-            dataObj.success = successArray.slice(-10, userTotals.length)
+            dataObj.success = successArray.slice(-8, userTotals.length)
 
             let failArray = userTotals.sort((a, b) => (a.fail > b.fail) ? 1 : ((b.fail > a.fail) ? -1 : 0));
-            dataObj.fail = failArray.slice(-10, userTotals.length)
+            dataObj.fail = failArray.slice(-8, userTotals.length)
 
             let barData = {
                 success: {
