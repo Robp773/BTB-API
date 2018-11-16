@@ -45,7 +45,7 @@ app.get('/totals', function (req, res) {
                         fail: 0
                     };
                 }
-
+                // add up success/fails
                 if (result.logs[i].Action === "Logon-Success") {
 
                     userObj[currentUser].success++
@@ -55,8 +55,8 @@ app.get('/totals', function (req, res) {
                     userObj[currentUser].fail++
                 }
             }
+            // arrange totals into array so they can be sorted by success or fail afterwards
             let userTotals = []
-
             for (let user in userObj) {
                 userTotals.push({
                     name: user,
@@ -65,14 +65,36 @@ app.get('/totals', function (req, res) {
                 })
             }
 
-
+            // sort for largest number of success/fail
             let successArray = userTotals.sort((a, b) => (a.success > b.success) ? 1 : ((b.success > a.success) ? -1 : 0));
             dataObj.success = successArray.slice(-7, userTotals.length)
 
             let failArray = userTotals.sort((a, b) => (a.fail > b.fail) ? 1 : ((b.fail > a.fail) ? -1 : 0));
             dataObj.fail = failArray.slice(-7, userTotals.length)
-            console.log(dataObj)
-            res.send(dataObj)
+
+            let barData = {
+                success: {
+                    labels: [],
+                    data: []
+                },
+                fail: {
+                    labels: [],
+                    data: []
+                }
+            }
+
+            for (let i = 0; i < dataObj.success.length; i++) {
+                barData.success.labels.push(dataObj.success[i].name)
+                barData.success.data.push(dataObj.success[i].success)
+            }
+    
+            for (let i = 0; i < dataObj.fail.length; i++) {
+                barData.fail.labels.push(dataObj.fail[i].name)
+                barData.fail.data.push(dataObj.fail[i].fail)
+            }
+
+            console.log(barData)
+            res.send(barData)
         })
 });
 
@@ -195,7 +217,7 @@ function updateDB() {
 
 function runDB() {
     updateDB()
-    setInterval(updateDB, 60000)
+    // setInterval(updateDB, 60000)
 }
 
 runDB()
