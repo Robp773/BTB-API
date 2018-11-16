@@ -16,17 +16,16 @@ app.use(cors());
 mongoose.promise = global.promise;
 
 
-app.get('/init', function (req, res) {
-    console.log('initiating db')
-    Logs.create({
-        lastLog: 0,
-        logs: []
-    })
-    res.send('initiated')
-});
+// app.get('/init', function (req, res) {
+//     console.log('initiating db')
+//     Logs.create({
+//         lastLog: 0,
+//         logs: []
+//     })
+//     res.send('initiated')
+// });
 
 app.get('/totals', function (req, res) {
-    console.log('getting totals')
 
     let dataObj = {}
     let userObj = {}
@@ -87,7 +86,7 @@ app.get('/totals', function (req, res) {
                 barData.success.labels.push(dataObj.success[i].name)
                 barData.success.data.push(dataObj.success[i].success)
             }
-    
+
             for (let i = 0; i < dataObj.fail.length; i++) {
                 barData.fail.labels.push(dataObj.fail[i].name)
                 barData.fail.data.push(dataObj.fail[i].fail)
@@ -98,7 +97,6 @@ app.get('/totals', function (req, res) {
         })
 });
 
-// let server;
 // connects mongoose and starts server
 function runServer(databaseUrl = DATABASE_URL, port = PORT) {
     return new Promise((resolve, reject) => {
@@ -112,7 +110,6 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
                     console.log(`Your app is listening on port ${port}`);
                     resolve();
                 })
-                // node method that binds event handlers to events by their string name ('error'), identical jquery method.
                 .on('error', err => {
                     mongoose.disconnect();
                     reject(err);
@@ -120,9 +117,6 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
         });
     });
 }
-
-runServer().catch(err => console.error(err));
-
 function getAuth() {
 
     return axios.get('https://duoauth.me/auth')
@@ -215,9 +209,14 @@ function updateDB() {
     })
 }
 
+
 function runDB() {
-    updateDB()
-    // setInterval(updateDB, 60000)
+   return runServer().catch(err => console.error(err))
+   .then(()=>{
+         updateDB()    
+          // setInterval(updateDB, 60000)
+
+   });
 }
 
 runDB()
