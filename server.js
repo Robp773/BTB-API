@@ -2,12 +2,9 @@ var express = require('express');
 var app = express();
 const axios = require('axios');
 const mongoose = require('mongoose');
-
 var moment = require('moment');
-
 const cors = require('cors');
 // require('dotenv').config();
-
 const {
     Logs
 } = require('./models');
@@ -15,10 +12,9 @@ const {
     DATABASE_URL,
     PORT
 } = require('./config');
-
 app.use(cors());
-
 mongoose.promise = global.promise;
+
 
 app.get('/init', function (req, res) {
     console.log('initiating db')
@@ -26,11 +22,72 @@ app.get('/init', function (req, res) {
         lastLog: 0,
         logs: []
     })
-
     res.send('initiated')
 });
 
-let server;
+app.get('/totals', function (req, res) {
+    console.log('getting totals')
+
+    let dataObj = {
+        success: 0,
+        fail: 0,
+        top: {}
+    }
+
+    let userObj = {}
+
+    Logs.findOne({})
+        .then((result) => {
+
+            for (let i = 0; i < result.logs.length; i++) {
+                let currentLog = result.logs[i]
+                let currentUser = currentLog.UserName
+                // console.log(currentUser)
+
+                if (!userObj[currentUser]) {
+
+                    userObj[currentUser] = {
+                        success: 0,
+                        fail: 0
+                    };
+                }
+
+                if (result.logs[i].Action === "Logon-Success") {
+
+                    // increment grand total success
+                    dataObj.success++
+                    userObj[currentUser].success++
+
+                } else if (result.logs[i].Action === "Logon-Failure") {
+
+                    dataObj.fail++;
+                    userObj[currentUser].fail++
+                }
+            }
+            let userTotals = []
+
+            for (let user in userObj) {
+                console.log(userObj[user].success)
+                userTotals.push({
+                    name: user,
+                    success: userObj[user].success,
+                    fail: userObj[user].fail
+                })
+            }
+
+
+            let successArray = userTotals.sort((a, b) => (a.success > b.success) ? 1 : ((b.success > a.success) ? -1 : 0));
+            dataObj.top.success = successArray.slice(-7, userTotals.length)
+
+            let failArray = userTotals.sort((a, b) => (a.fail > b.fail) ? 1 : ((b.fail > a.fail) ? -1 : 0));
+            dataObj.top.fail = failArray.slice(-7, userTotals.length)
+
+            console.log(dataObj.top)
+            res.send(dataObj)
+        })
+});
+
+// let server;
 // connects mongoose and starts server
 function runServer(databaseUrl = DATABASE_URL, port = PORT) {
     return new Promise((resolve, reject) => {
@@ -53,20 +110,6 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
     });
 }
 
-// function closeServer() {
-//     return mongoose.disconnect().then(() => {
-//         return new Promise((resolve, reject) => {
-//             console.log('Closing server');
-//             server.close(err => {
-//                 if (err) {
-//                     return reject(err);
-//                 }
-//                 resolve();
-//             });
-//         });
-//     });
-// }
-
 runServer().catch(err => console.error(err));
 
 function getAuth() {
@@ -80,8 +123,10 @@ function getAuth() {
         });
 }
 
-function tester() {
-    let oldLogCap;
+let oldLogCap;
+let newLogCap;
+
+function updateDB() {
     let filteredArray;
     // get auth token
     return getAuth().then((res) => {
@@ -116,11 +161,12 @@ function tester() {
 
                 console.log(`requesting data from ${oldLogCap} and up`)
                 // get req with params
+
                 axios.get('https://duoauth.me/get-events', config)
                     .then(response => {
 
                         // set variable for new number of logs
-                        let newLogCap = oldLogCap + response.data.length
+                        newLogCap = oldLogCap + response.data.length
 
                         // if there are new results
                         if (response.data) {
@@ -158,4 +204,9 @@ function tester() {
     })
 }
 
-tester()
+function runDB() {
+    updateDB()
+    setInterval(updateDB, 60000)
+}
+
+runDB()
