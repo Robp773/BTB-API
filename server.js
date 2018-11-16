@@ -28,24 +28,18 @@ app.get('/init', function (req, res) {
 app.get('/totals', function (req, res) {
     console.log('getting totals')
 
-    let dataObj = {
-        success: 0,
-        fail: 0,
-        top: {}
-    }
-
+    let dataObj = {}
     let userObj = {}
 
     Logs.findOne({})
         .then((result) => {
 
+            // counting up success/fails for each user
             for (let i = 0; i < result.logs.length; i++) {
                 let currentLog = result.logs[i]
                 let currentUser = currentLog.UserName
-                // console.log(currentUser)
-
+                // if userObj doesnt already have a key created for user, create one
                 if (!userObj[currentUser]) {
-
                     userObj[currentUser] = {
                         success: 0,
                         fail: 0
@@ -54,20 +48,16 @@ app.get('/totals', function (req, res) {
 
                 if (result.logs[i].Action === "Logon-Success") {
 
-                    // increment grand total success
-                    dataObj.success++
                     userObj[currentUser].success++
 
                 } else if (result.logs[i].Action === "Logon-Failure") {
 
-                    dataObj.fail++;
                     userObj[currentUser].fail++
                 }
             }
             let userTotals = []
 
             for (let user in userObj) {
-                console.log(userObj[user].success)
                 userTotals.push({
                     name: user,
                     success: userObj[user].success,
@@ -77,12 +67,11 @@ app.get('/totals', function (req, res) {
 
 
             let successArray = userTotals.sort((a, b) => (a.success > b.success) ? 1 : ((b.success > a.success) ? -1 : 0));
-            dataObj.top.success = successArray.slice(-7, userTotals.length)
+            dataObj.success = successArray.slice(-7, userTotals.length)
 
             let failArray = userTotals.sort((a, b) => (a.fail > b.fail) ? 1 : ((b.fail > a.fail) ? -1 : 0));
-            dataObj.top.fail = failArray.slice(-7, userTotals.length)
-
-            console.log(dataObj.top)
+            dataObj.fail = failArray.slice(-7, userTotals.length)
+            console.log(dataObj)
             res.send(dataObj)
         })
 });
