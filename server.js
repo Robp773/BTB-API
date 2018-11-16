@@ -117,7 +117,7 @@ function getAuth() {
             console.log(error);
         });
 }
-
+// checks for new logs and saves them to db
 function updateDB() {
     let oldLogCap, newLogCap, filteredArray;
 
@@ -133,21 +133,21 @@ function updateDB() {
                 // array of normalized data, new logs will be pushed into this
                 filteredArray = log.logs
 
-        // ---------------------------------------------------------------------------------
+                // ---------------------------------------------------------------------------------
 
                 // used for finding duplicate id's - not being used since I've decided
                 // its better to leave duplicate ids and count them in data rather than
                 // change them to unique ids and 
-                
+
                 // for (let i = 0; i <= filteredArray.length - 1; i++) {
                 //     if (i !== 0) {
                 // if (filteredArray[i].AcmeApiId === filteredArray[i - 1].AcmeApiId) {
-          
+
                 //          }
                 //     }
                 // }
 
-        // ---------------------------------------------------------------------------------
+                // ---------------------------------------------------------------------------------
 
             })
 
